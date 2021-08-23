@@ -1,0 +1,430 @@
+% initialise variables needed and load model predictions + ground truth
+
+y = []; %ground truth
+
+spoc_pred = spocpred(:,1); %model 1
+riemann_pred = riemannpred(:,1); %model 2
+log_diag_pred = logdiagpred(:,1); %model 3
+
+Nsamp = size(y,1);
+Ncomp = 21;
+ci = 21;
+
+s_bx3 = zeros(Nsamp, Ncomp);
+s_bx5 = zeros(Nsamp, Ncomp);
+s_bx7 = zeros(Nsamp, Ncomp);
+
+r_bx3 = zeros(Nsamp, Ncomp);
+r_bx5 = zeros(Nsamp, Ncomp);
+r_bx7 = zeros(Nsamp, Ncomp);
+
+log_bx3 = zeros(Nsamp, Ncomp);
+log_bx5 = zeros(Nsamp, Ncomp);
+log_bx7 = zeros(Nsamp, Ncomp);
+
+s_Igd_model3 = zeros(Ncomp,1);
+s_Igd_model5 = zeros(Ncomp,1);
+s_Igd_model7 = zeros(Ncomp,1);
+s_Igcmi = zeros(Ncomp,1);
+s_Ib3 = zeros(Ncomp,1);
+s_Ib5 = zeros(Ncomp,1);
+s_Ib7 = zeros(Ncomp,1);
+
+r_Igd_model3 = zeros(Ncomp,1);
+r_Igd_model5 = zeros(Ncomp,1);
+r_Igd_model7 = zeros(Ncomp,1);
+r_Igcmi = zeros(Ncomp,1);
+r_Ib3 = zeros(Ncomp,1);
+r_Ib5 = zeros(Ncomp,1);
+r_Ib7 = zeros(Ncomp,1);
+
+log_Igd_model3 = zeros(Ncomp,1);
+log_Igd_model5 = zeros(Ncomp,1);
+log_Igd_model7 = zeros(Ncomp,1);
+log_Igcmi = zeros(Ncomp,1);
+log_Ib3 = zeros(Ncomp,1);
+log_Ib5 = zeros(Ncomp,1);
+log_Ib7 = zeros(Ncomp,1);
+
+
+%% binned ground truth ages 
+
+by3 = eqpopbin(y, 3); %gt ages with bins = 3
+by4 = eqpopbin(y, 4); %gt ages with bins = 4
+by5 = eqpopbin(y, 5); %gt ages with bins = 5
+by7 = eqpopbin(y, 7); %gt ages with bins = 7
+
+
+%% MI for each of the 21 component predictions of riemann, spoc, and log-diag.
+
+
+for i = 1:21
+    s_cols = spocpred(:,2) == i;
+    x_spoc = spocpred(s_cols, 1);
+    cx_s = copnorm(x_spoc);
+    cy = copnorm(y); %it is the same for all
+    s_Igcmi(i) = mi_gg(cx_s, cy, true, true);
+    s_bx3(:, i) = eqpopbin(x_spoc, 3);
+    s_bx4(:, i) = eqpopbin(x_spoc, 4);
+    s_bx5(:, i) = eqpopbin(x_spoc, 5);
+    s_bx7(:, i) = eqpopbin(x_spoc, 7);
+    
+    r_cols = riemannpred(:,2) == i;
+    x_riemann = riemannpred(r_cols, 1);
+    r_cols = riemannpred(:,2) == i;
+    x_riemann = riemannpred(r_cols, 1);
+    r_bx3(:, i) = eqpopbin(x_riemann, 3);
+    r_bx4(:, i) = eqpopbin(x_riemann, 4);
+    r_bx5(:, i) = eqpopbin(x_riemann, 5);
+    r_bx7(:, i) = eqpopbin(x_riemann, 7);
+    cx_r = copnorm(x_riemann);
+    r_Igcmi(i) = mi_gg(cx_r, cy, true, true);
+    
+    log_cols = logdiagpred(:,2) == i;
+    x_log = logdiagpred(log_cols, 1);
+    log_bx3(:, i) = eqpopbin(x_log, 3);
+    log_bx4(:, i) = eqpopbin(x_log, 4);
+    log_bx5(:, i) = eqpopbin(x_log, 5);
+    log_bx7(:, i) = eqpopbin(x_log, 7);
+    cx_log = copnorm(x_log);
+    log_Igcmi(i) = mi_gg(cx_log, cy, true, true);
+    
+    s_Igd_model3(i) = mi_model_gd(cx_s, by3, 3, true, true);
+    s_Igd_model5(i) = mi_model_gd(cx_s, by5, 5, true, true);
+    s_Igd_model7(i) = mi_model_gd(cx_s, by7, 7, true, true);
+    
+    r_Igd_model3(i) = mi_model_gd(cx_r, by3, 3, true, true);
+    r_Igd_model5(i) = mi_model_gd(cx_r, by5, 5, true, true);
+    r_Igd_model7(i) = mi_model_gd(cx_r, by7, 7, true, true);
+    
+    log_Igd_model3(i) = mi_model_gd(cx_log, by3, 3, true, true);
+    log_Igd_model5(i) = mi_model_gd(cx_log, by5, 5, true, true);
+    log_Igd_model7(i) = mi_model_gd(cx_log, by7, 7, true, true);
+    
+    
+    s_Ib3(i) = calcinfo(s_bx3(:,i),3,by3,3);
+    s_Ib5(i) = calcinfo(s_bx5(:,i),5,by5,5);
+    s_Ib7(i) = calcinfo(s_bx7(:,i),7,by7,7);
+    
+    r_Ib3(i) = calcinfo(r_bx3(:,i),3,by3,3);
+    r_Ib5(i) = calcinfo(r_bx5(:,i),5,by5,5);
+    r_Ib7(i) = calcinfo(r_bx7(:,i),7,by7,7);
+    
+    log_Ib3(i) = calcinfo(log_bx3(:,i),3,by3,3);
+    log_Ib5(i) = calcinfo(log_bx5(:,i),5,by5,5);
+    log_Ib7(i) = calcinfo(log_bx7(:,i),7,by7,7);
+    
+end 
+
+%% curves of mi_gg for riemann with binned ages
+
+figure(4),hold all,plot(r_Ib3),plot(r_Ib5),plot(r_Ib7),legend('CALC 3bins','CALC 5bins','CALC 7bins')
+set(get(gca,'Children'),'LineWidth',2), xlabel('no. of components'), ylabel('MI value in bits'), title('MI curve plot of the Riemann model')
+
+
+%% pmi 
+
+
+
+bias3 = mmbiasinfo(3, 3, Nsamp)
+
+
+% 3 bins for spoc and gt ages
+
+[Is, pmis] = calcpmi(s_bx3(:,ci),3,by3,3);
+figure(6)
+imagesc(pmis)
+axis image
+ch = colorbar;
+ch.Label.String = 'PMI [bits]';
+cmap = flipud(cbrewer('div','RdBu','128'));
+colormap(cmap);
+caxis([-5.5 5.5]);
+set(gca,'XTick',1:5,'YTick',1:5)
+set(gca,'YDir','normal')
+title(sprintf('PMI %s %.2f', 'SPOC 3 bins', Is - bias3))
+ylabel('SPOC predictions')
+xlabel('ground truth ages')
+
+
+%3 bins for riemann and gt ages
+[Ir, pmir] = calcpmi(r_bx3(:,ci),3,by3,3);
+figure(7)
+imagesc(pmir)
+axis image
+ch = colorbar;
+ch.Label.String = 'PMI [bits]';
+cmap = flipud(cbrewer('div','RdBu','128'));
+colormap(cmap);
+caxis([-5.5 5.5]);
+set(gca,'XTick',1:5,'YTick',1:5)
+set(gca,'YDir','normal')
+title(sprintf('PMI %s %.2f', 'Riemann 3 bins', Ir - bias3))
+ylabel('Riemann predictions')
+xlabel('ground truth ages')
+
+
+%3 bins for log-diag and gt ages
+[Ir, pmil] = calcpmi(log_bx3(:,ci),3,by3,3);
+figure(8)
+imagesc(pmil)
+axis image
+ch = colorbar;
+ch.Label.String = 'PMI [bits]';
+cmap = flipud(cbrewer('div','RdBu','128'));
+colormap(cmap);
+caxis([-5.5 5.5]);
+set(gca,'XTick',1:5,'YTick',1:5)
+set(gca,'YDir','normal')
+title(sprintf('PMI %s %.2f', 'Log-Diag 3 bins', Ir - bias3))
+ylabel('Log-Diag predictions')
+xlabel('ground truth ages')
+
+%difference in PMI between riemann and spoc
+figure (9)
+imagesc(pmir - pmis)
+axis image
+colorbar
+ch = colorbar;
+ch.Label.String = 'PMI [bits]';
+cmap = flipud(cbrewer('div','RdBu','128'));
+colormap(cmap);
+caxis([-1.5 1.5]);
+set(gca,'YDir','normal')
+set(gca,'XTick',1:5,'YTick',1:5)
+title('Difference between Riemann PMI and SPoC PMI')
+xlabel('Ground truth ages')
+ylabel('Riemann PMI - SPoC PMI')
+
+
+%difference in PMI between spoc and log-diag
+figure (10)
+imagesc(pmis - pmil)
+axis image
+colorbar
+ch = colorbar;
+ch.Label.String = 'PMI [bits]';
+cmap = flipud(cbrewer('div','RdBu','128'));
+colormap(cmap);
+caxis([-1.5 1.5]);
+set(gca,'YDir','normal')
+set(gca,'XTick',1:5,'YTick',1:5)
+title('Difference between SPoC PMI and Log-Diag PMI')
+xlabel('Ground truth ages')
+ylabel('SPoC PMI - Log-Diag PMI')
+
+
+%difference in PMI between riemann and log-diag
+figure (11)
+imagesc(pmir - pmil)
+axis image
+colorbar
+ch = colorbar;
+ch.Label.String = 'PMI [bits]';
+cmap = flipud(cbrewer('div','RdBu','128'));
+colormap(cmap);
+caxis([-1.5 1.5]);
+set(gca,'YDir','normal')
+set(gca,'XTick',1:5,'YTick',1:5)
+title('Difference between Riemann PMI and Log-Diag PMI')
+xlabel('Ground truth ages')
+ylabel('Riemann PMI - Log-Diag PMI')
+
+
+%% pmi riemann and gt ages at 5 bins
+
+
+bias = mmbiasinfo(5, 5, Nsamp)
+
+[Ir, pmir] = calcpmi(r_bx5(:,ci),5,by5,5);
+figure(12)
+imagesc(pmir)
+axis image
+colorbar
+ch = colorbar;
+ch.Label.String = 'PMI [bits]';
+cmap = flipud(cbrewer('div','RdBu','128'));
+colormap(cmap);
+caxis([-5.5 5.5]);
+set(gca,'XTick',1:5,'YTick',1:5)
+set(gca,'YDir','normal')
+title(sprintf('PMI %s %.2f', 'Riemann', Ir - bias))
+ylabel('Riemann predictions')
+xlabel('ground truth ages')
+
+
+%% bin model predictions for co-i calculation 
+
+s_r_bx3 = eqpopbin((x_spoc + x_riemann) * 3, 3);
+s_log_bx3 = eqpopbin((x_spoc + x_log) * 3, 3);
+r_log_bx3 = eqpopbin((x_riemann + x_log) * 3, 3);
+
+
+
+%% co-information calc for model pairs 3 bins
+
+Nbinn = 3;
+
+s_I_gt = calcinfo(s_bx3(:,ci), Nbinn, by3, Nbinn); % predictions model spoc vs ground truth
+r_I_gt = calcinfo(r_bx3(:,ci), Nbinn, by3, Nbinn); % predictions model riemann vs ground truth
+l_I_gt = calcinfo(log_bx3(:,ci), Nbinn, by3, Nbinn); % predictions model log-diag vs ground truth
+
+sr_I_gt = calcinfo(s_r_bx3, Nbinn, by3, Nbinn); % information from spoc-riemann predictions together jointly
+sl_I_gt = calcinfo(s_log_bx3, Nbinn, by3, Nbinn); % information from spoc-logdiag predictions together jointly
+rl_I_gt = calcinfo(r_log_bx3, Nbinn, by3, Nbinn); % information from riemann-logdiag predictions together jointly
+
+
+bias1_bx3 = mmbiasinfo(3,3,Nsamp);
+bias2_bx3 = mmbiasinfo(3*3, 3, Nsamp);
+coiBias_bx3 = 2*bias1_bx3 - bias2_bx3;
+
+sr_coI = s_I_gt + r_I_gt - sr_I_gt - coiBias_bx3; %coI from spoc-riemann predictions together jointly
+sl_coI = s_I_gt + l_I_gt - sl_I_gt - coiBias_bx3; %coI from spoc-logdiag predictions together jointly
+rl_coI = r_I_gt + l_I_gt - rl_I_gt - coiBias_bx3; %coI from riemann-logdiag predictions together jointly
+
+
+%% for co-i plot
+
+% spoc, riemen, log
+coi = zeros(3,3);
+coi(1,2) = sr_coI;
+coi(1,3) = rl_coI;
+coi(2,3) = sl_coI;
+coi = coi+coi';
+
+% mi values on diagonal
+coi(1,1) = s_I_gt - bias1_bx3;
+coi(2,2) = r_I_gt - bias1_bx3;
+coi(3,3) = l_I_gt - bias1_bx3;
+
+%% co-i plot
+
+figure(15)
+imagesc(coi)
+axis image
+colorbar
+cmap = flipud(cbrewer('div','RdBu','128'));
+colormap(cmap);
+caxis([-1 1]*max(abs(caxis))) 
+set(gca,'YDir','reverse');
+set(gca,'XTick',1:5,'YTick',1:5)
+title('MI and Co-I between SPoC, Riemann and Log-Diag models')
+
+%% age range for each bin
+
+gt_range_3 = get_bin_ranges(y, by3, 3)
+gt_range_4 = get_bin_ranges(y, by4, 4)
+gt_range_5 = get_bin_ranges(y, by5, 5)
+
+spoc_range_3 = get_bin_ranges(x_spoc, s_bx3(:,ci), 3)
+spoc_range_4 = get_bin_ranges(x_spoc, s_bx4(:,ci), 4)
+spoc_range_5 = get_bin_ranges(x_spoc, s_bx5(:,ci), 5)
+
+riemann_range_3 = get_bin_ranges(x_riemann, r_bx3(:,ci), 3)
+riemann_range_4 = get_bin_ranges(x_riemann, r_bx4(:,ci), 4)
+riemann_range_5 = get_bin_ranges(x_riemann, r_bx5(:,ci), 5)
+
+log_range_3 = get_bin_ranges(x_log, log_bx3(:,ci), 3)
+log_range_4 = get_bin_ranges(x_log, log_bx4(:,ci), 4)
+log_range_5 = get_bin_ranges(x_log, log_bx5(:,ci), 5)
+
+
+%% perumutation test 
+%combine data from both models into a single data
+% concatenation 
+
+x_spocriemann = cat(1,r_bx3(:,ci),s_bx3(:,ci));
+model1 = cat(1, zeros(size(x_riemann)), ones(size(x_spoc)));
+
+x_riemannlog = cat(1,r_bx3(:,ci),log_bx3(:,ci));
+model2 = cat(1, zeros(size(x_riemann)), ones(size(x_log)));
+
+x_spoclog = cat(1,s_bx3(:,ci),log_bx3(:,ci));
+model3 = cat(1, zeros(size(x_spoc)), ones(size(x_log)));
+
+%% permtuations for PMI difference between riemann and spoc
+
+Nperm = 1000;
+pmi_diff_rs = zeros(3,3,Nperm);
+
+for i = 1:100
+    % shuffle model label
+    shuffmodel = model1(randperm(length(model1)));
+    
+    double_y = cat(1,by3,by3);
+    rie_idx = shuffmodel==0;
+
+    [I_r, pmi_r] = calcpmi(x_spocriemann(rie_idx), 3, double_y(rie_idx), 3);
+
+    spoc_idx = shuffmodel==1;
+    [I_s, pmi_s] = calcpmi(x_spocriemann(spoc_idx), 3, double_y(spoc_idx), 3);
+    
+    pmi_diff_rs(:,:,i) = pmi_r - pmi_s;
+    
+end 
+
+%% method of maximum statistcis for riemann and spoc threshold 
+maxperm_rs = squeeze(max(max(pmi_diff_rs,[],1),[],2));
+minperm_rs = squeeze(min(min(pmi_diff_rs,[],1),[],2));
+
+minthresh_rs = prctile(minperm_rs, 2.5);
+maxthresh_rs = prctile(maxperm_rs, 97.5);
+
+%% permtuations for PMI difference between riemann and log
+
+Nperm = 1000;
+pmi_diff_rl = zeros(3,3,Nperm);
+
+for i = 1:100
+    % shuffle model label
+    shuffmodel = model2(randperm(length(model2)));
+    
+    double_y = cat(1,by3,by3);
+    rie_idx = shuffmodel==0;
+
+    [I_r, pmi_r] = calcpmi(x_spocriemann(rie_idx), 3, double_y(rie_idx), 3);
+
+    log_idx = shuffmodel==1;
+    [I_l, pmi_l] = calcpmi(x_spocriemann(log_idx), 3, double_y(log_idx), 3);
+    
+    pmi_diff_rl(:,:,i) = pmi_r - pmi_l;
+    
+end 
+
+%% method of maximum statistcis between riemann and log 
+
+maxperm_rl = squeeze(max(max(pmi_diff_rl,[],1),[],2));
+minperm_rl = squeeze(min(min(pmi_diff_rl,[],1),[],2));
+
+minthresh_rl = prctile(minperm_rl, 2.5);
+maxthresh_rl = prctile(maxperm_rl, 97.5);
+
+%% permtuations for PMI difference between spoc and log
+
+Nperm = 1000;
+pmi_diff_sl = zeros(3,3,Nperm);
+
+for i = 1:100
+    % shuffle model label
+    shuffmodel = model3(randperm(length(model3)));
+    
+    double_y = cat(1,by3,by3);
+    s_idx = shuffmodel==0;
+
+    [I_s, pmi_s] = calcpmi(x_spoclog(s_idx), 3, double_y(s_idx), 3);
+
+    log_idx = shuffmodel==1;
+    [I_l, pmi_l] = calcpmi(x_spoclog(log_idx), 3, double_y(log_idx), 3);
+    
+    pmi_diff_sl(:,:,i) = pmi_s - pmi_l;
+    
+end 
+
+%% method of maximum statistcis between spoc and log 
+
+maxperm_sl = squeeze(max(max(pmi_diff_sl,[],1),[],2));
+minperm_sl = squeeze(min(min(pmi_diff_sl,[],1),[],2));
+
+minthresh_sl = prctile(minperm_sl, 2.5);
+maxthresh_sl = prctile(maxperm_sl, 97.5);
+
